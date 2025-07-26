@@ -563,24 +563,28 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
             reversedPath = true
             minDistance = totalDistanceRev
         end
-        print("Distancia del viaje:", travelDistance)
-        print("Distancia con viaje conocido:", minDistance)
-        print(path.x1, path.y1, path.z1, path.x2, path.y2, path.z2)
-        print(tostring(1.25 * travelDistance > minDistance) .. "and (" .. tostring(selectedPath == -1) .. " or " .. tostring(minDistance < selectedPathDistance) .. ")")
-        print("")
-        io.read()
         if (1.25 * travelDistance > minDistance) and (selectedPath == -1 or minDistance > selectedPathDistance) then
                 selectedPath = index
                 selectedPathDistance = minDistance
                 useSavedPath = true
         end
+        print("Ruta actual", index)
+        print("Distancia del viaje:", travelDistance)
+        print("Distancia con viaje conocido:", minDistance)
+        print(path.x1, path.y1, path.z1, path.x2, path.y2, path.z2)
+        print(tostring(1.25 * travelDistance > minDistance) .. "and (" .. tostring(selectedPath == -1) .. " or " .. tostring(minDistance < selectedPathDistance) .. ")")
+        print("Ruta seleccionada", selectedPath)
+        print("")
+        io.read()
     end
     local path1 = {}
     local path2 = {}
     local path3 = {}
     if useSavedPath == false then
+        print("Ruta viable no encontrada")
         AStar(x1, y1, z1, x2, y2, z2)
     elseif reversedPath == false then
+        print("Ruta viable encontrada")
         saveNewPath = true
         path1 = AStar(x1, y1, z1, availablePaths[selectedPath].x1, availablePaths[selectedPath].y1, availablePaths[selectedPath].z1)
         path2 = LoadPathFromFile(string.format("%d_%d_%d_to_%d_%d_%d.txt",
@@ -593,6 +597,7 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
         false)
         path3 = AStar(availablePaths[selectedPath].x2, availablePaths[selectedPath].y2, availablePaths[selectedPath].z2, x2, y2, z2)
     else
+        print("Ruta viable encontrada")
         saveNewPath = true
         path1 = AStar(x1, y1, z1, availablePaths[selectedPath].x2, availablePaths[selectedPath].y2, availablePaths[selectedPath].z2)
         path2 = LoadPathFromFile(string.format("%d_%d_%d_to_%d_%d_%d.txt",
