@@ -569,7 +569,7 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
         print(tostring(1.25 * travelDistance > minDistance) .. "and (" .. tostring(selectedPath == -1) .. " or " .. tostring(minDistance < selectedPathDistance) .. ")")
         print("")
         io.read()
-        if (1.25 * travelDistance > minDistance) and (selectedPath == -1 or minDistance < selectedPathDistance) then
+        if (1.25 * travelDistance > minDistance) and (selectedPath == -1 or minDistance > selectedPathDistance) then
                 selectedPath = index
                 selectedPathDistance = minDistance
                 useSavedPath = true
