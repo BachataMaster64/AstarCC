@@ -581,7 +581,7 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
     local path2 = {}
     local path3 = {}
     if selectedPath < 0 then
-        print("Ruta viable no encontrada")
+        print("Ruta viable no encontrada", selectedPath)
         AStar(x1, y1, z1, x2, y2, z2)
     elseif reversedPath == false then
         print("Ruta viable encontrada")
