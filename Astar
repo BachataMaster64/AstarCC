@@ -533,8 +533,7 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
     local saveNewPath = false
     local useSavedPath = false
     for index, path in pairs(availablePaths) do
-        reversedPath = false
-        useSavedPath = false
+        local reversed = false
 
         if (path.x1 == x1 and path.y1 == y1 and path.z1 == z1 and path.x2 == x2 and path.y2 == y2 and path.z2 == z2) then
             selectedPath = index
@@ -560,13 +559,14 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
         local minDistance = totalDistance
 
         if totalDistanceRev < totalDistance then
-            reversedPath = true
+            reversed = true
             minDistance = totalDistanceRev
         end
         if (1.25 * travelDistance > minDistance) and (selectedPath == -1 or minDistance > selectedPathDistance) then
                 selectedPath = index
                 selectedPathDistance = minDistance
                 useSavedPath = true
+                reversedPath = reversed
         end
         print("Ruta actual", index)
         print("Distancia del viaje:", travelDistance)
