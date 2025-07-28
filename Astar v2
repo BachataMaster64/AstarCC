@@ -677,7 +677,7 @@ function ReadPointsFromFile(filename)
 
         -- Extraer 4 números: x, y, z, N
         local x, y, z, C = string.match(line, "(-?%d+),(-?%d+),(-?%d+),(-?%d+)")
-        if x and y and z and n then
+        if x and y and z and C then
             table.insert(points, {
                 x = tonumber(x),
                 y = tonumber(y),
@@ -709,7 +709,6 @@ function Work()
             end
         end
     end
-    os.sleep(60)
 end
 
 -- Carpeta base
