@@ -721,15 +721,16 @@ if not fs.exists(BaseDir) then
 end
 
 GetInitialPos()
-print("Introducir posicion final en x")
-X = tonumber(io.read())
-print("Introducir posicion final en y")
-Y = tonumber(io.read())
-print("Introducir posicion final en z")
-Z = tonumber(io.read())
-X0 = Pos.x
-Y0 = Pos.y
-Z0 = Pos.z
-SmartNavigate(X0, Y0, Z0, X, Y, Z)
-io.read()
-SmartNavigate(X, Y, Z, X0, Y0, Z0)
+Work()
+--print("Introducir posicion final en x")
+--X = tonumber(io.read())
+--print("Introducir posicion final en y")
+--Y = tonumber(io.read())
+--print("Introducir posicion final en z")
+--Z = tonumber(io.read())
+--X0 = Pos.x
+--Y0 = Pos.y
+--Z0 = Pos.z
+--SmartNavigate(X0, Y0, Z0, X, Y, Z)
+--io.read()
+--SmartNavigate(X, Y, Z, X0, Y0, Z0)
