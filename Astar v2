@@ -60,6 +60,21 @@ function GetInitialPos()
     return Pos
 end
 
+function CheckFuel()
+    while true do
+        local fuelLimit = turtle.getFuelLimit()
+        local fuelLevel = turtle.getFuelLevel()
+        local fuelPercent = fuelLevel / fuelLimit
+        if fuelPercent > 0.2 then
+            return
+        end
+        print("Esperando por combustible...")
+        turtle.refuel(64)
+        os.sleep(60)
+    end
+
+end
+
 function RotateTo(C)
     -- rota al turtle al punto cardinal indicado
     local northRotation = {N = 0, S = 2, E = 1, W = -1}
@@ -190,6 +205,7 @@ end
 
 function GoTo(x, y, z)
     -- va al punto
+    CheckFuel()
     local successX = XInputMovement(x)
     local successY = YInputMovement(y)
     local successZ = ZInputMovement(z)
@@ -694,7 +710,7 @@ function ReadPointsFromFile(filename)
     return points
 end
 
-function Work()
+function WorkRoutine()
     local points = ReadPointsFromFile("Instructions")
     SmartNavigate(Pos.x, Pos.y, Pos.z, points[1].x, points[1].y, points[1].z)
     RotateTo(points[1].C)
@@ -723,16 +739,7 @@ if not fs.exists(BaseDir) then
 end
 
 GetInitialPos()
-Work()
---print("Introducir posicion final en x")
---X = tonumber(io.read())
---print("Introducir posicion final en y")
---Y = tonumber(io.read())
---print("Introducir posicion final en z")
---Z = tonumber(io.read())
---X0 = Pos.x
---Y0 = Pos.y
---Z0 = Pos.z
---SmartNavigate(X0, Y0, Z0, X, Y, Z)
---io.read()
---SmartNavigate(X, Y, Z, X0, Y0, Z0)
+while true do
+    WorkRoutine()
+    os.sleep(300)
+end
