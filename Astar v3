@@ -1,0 +1,595 @@
+function DeepCopyTable(table)
+    -- crea una copia de una tabla
+    local copy = {}
+    for k, v in pairs(table) do
+        if type(v) == "table" then
+            copy[k] = DeepCopyTable(v)
+        else
+            copy[k] = v
+        end
+    end
+    return copy
+end
+
+function GetPath(filename)
+    return BaseDir .. "/" .. filename
+end
+
+function getRoutesFromFolder(folder)
+    local routes = {}
+    local files = fs.list(folder)
+
+    for _, file in ipairs(files) do
+        -- Verifica si coincide con el patrón
+        local x1, y1, z1, x2, y2, z2 = file:match("^(%-?%d+)_(%-?%d+)_(%-?%d+)_to_(%-?%d+)_(%-?%d+)_(%-?%d+)%.txt$")
+        if x1 then
+            table.insert(routes, {
+                x1 = tonumber(x1), y1 = tonumber(y1), z1 = tonumber(z1),
+                x2 = tonumber(x2), y2 = tonumber(y2), z2 = tonumber(z2)
+            })
+        end
+    end
+
+    return routes
+end
+
+-----------------------------------
+-- plano xy es horizonal, z es altura
+
+function UpdatePosition(x, y, z, facing)
+    -- actualiza la posicion
+    Pos = {x = x, y = y, z = z, facing = facing}
+end
+
+function GetInitialPos()
+    -- pedir input al usuario de la posicion inical RELATIVA del turtle
+    term.clear()
+    term.setCursorPos(1, 1)
+    Pos = {}
+    print("Introducir posicion inicial en x")
+    Pos["x"] = tonumber(io.read())
+    print("Introducir posicion inicial en y")
+    Pos["y"] = tonumber(io.read())
+    print("Introducir posicion inicial en z")
+    Pos["z"] = tonumber(io.read())
+    print("Introducir direccion inicial (N/S/E/W)")
+    Pos["facing"] = io.read()
+    term.clear()
+    term.setCursorPos(1, 1)
+    UpdatePosition(Pos.x, Pos.y, Pos.z, Pos.facing)
+    return Pos
+end
+
+function RotateTo(C)
+    -- rota al turtle al punto cardinal indicado
+    local northRotation = {N = 0, S = 2, E = 1, W = -1}
+    local offset = {N = 0, S = 2, E = -1, W = 1}
+    local r = northRotation[Pos.facing] + offset[C]
+    if r > 2 then
+        r = r - 4
+    end
+    for i = 1, math.abs(r) do
+    	if r > 0 then
+            turtle.turnLeft()
+        else
+            turtle.turnRight()
+        end
+    end
+    Pos.facing = C
+end
+
+function MoveCardinal(C)
+    -- rota hacia el punto cardinal indicado y avanza // actualiza la posicion
+	RotateTo(C)
+    local success = turtle.forward()
+    if success == true then
+        if C == "N" then
+            UpdatePosition(Pos.x, Pos.y + 1, Pos.z, Pos.facing)
+            return true
+        end
+        if C == "S" then
+            UpdatePosition(Pos.x, Pos.y - 1, Pos.z, Pos.facing)
+            return true
+        end
+        if C == "E" then
+            UpdatePosition(Pos.x + 1, Pos.y, Pos.z, Pos.facing)
+            return true
+        end
+        if C == "W" then
+            UpdatePosition(Pos.x - 1, Pos.y, Pos.z, Pos.facing)
+            return true
+        end
+    end
+    return false
+end
+
+function MoveVertical(C)
+    -- sube o baja segun indicado // actualiza la posicion
+    if C == "U" then
+        local success = turtle.up()
+        if success == true then
+    		UpdatePosition(Pos.x, Pos.y, Pos.z + 1, Pos.facing)
+        	return true
+        end
+    end
+    if C == "D" then
+        local success = turtle.down()
+        if success == true then
+            UpdatePosition(Pos.x, Pos.y, Pos.z - 1, Pos.facing)
+            return true
+        end
+    end
+    return false
+end
+
+function XInputMovement(x)
+    -- lleva desde la posicion actual al punto (x)
+    local difference = x - Pos.x
+    if difference == 0 then
+        return true
+    end
+    local movements = math.abs(difference)
+    for i = 1, movements do
+        local success = true
+        if difference > 0 then
+            success = MoveCardinal("E")
+        end
+        if difference < 0 then
+            success = MoveCardinal("W")
+        end
+        if success == false then
+            return false
+        end
+    end
+    return true
+end
+
+function YInputMovement(y)
+    -- lleva desde la posicion actual al punto (y)
+    local difference = y - Pos.y
+    if difference == 0 then
+        return true
+    end
+    local movements = math.abs(difference)
+    for i = 1, movements do
+        local success = true
+        if difference > 0 then
+            success = MoveCardinal("N")
+        end
+        if difference < 0 then
+            success = MoveCardinal("S")
+        end
+        if success == false then
+            return false
+        end
+    end
+    return true
+end
+
+function ZInputMovement(z)
+    -- lleva desde la posicion actual al punto de (z)
+    local difference = z - Pos.z
+    if difference == 0 then
+        return true
+    end
+    local movements = math.abs(difference)
+    for i = 1, movements do
+        local success = true
+        if difference > 0 then
+        	success = MoveVertical("U")
+        end
+        if difference < 0 then
+        	success = MoveVertical("D")
+        end
+        if success == false then
+            return false
+        end
+    end
+    return true
+end
+
+function GoTo(x, y, z)
+    -- va al punto
+    local successX = XInputMovement(x)
+    local successY = YInputMovement(y)
+    local successZ = ZInputMovement(z)
+    return successX and successY and successZ
+end
+
+---------------------------------
+
+--[[ 
+AStar(x1, y1, z1, x2, y2, z2)
+Implementación del algoritmo A* para que una turtle navegue en 3D, evitando obstáculos.
+- Usa heurística Euclidiana (distancia directa).
+- Guarda el camino en un archivo con nombre basado en las coordenadas.
+Requiere:
+- Variables globales: Pos (posición actual), funciones RotateTo, GoTo, GetPath.
+- API de ComputerCraft (turtle, fs).
+--]]
+
+function AStar(x1, y1, z1, x2, y2, z2)
+
+    -- =======================
+    -- 🔹 Funciones Auxiliares
+    -- =======================
+
+    local function key(x, y, z)
+        return x .. "," .. y .. "," .. z
+    end
+
+    local function parseKey(s)
+        local x, y, z = string.match(s, "(-?%d+),(-?%d+),(-?%d+)")
+        return tonumber(x), tonumber(y), tonumber(z)
+    end
+
+    -- Crea o actualiza una celda en el mapa
+    local function setCell(x, y, z, value)
+        local k = key(x, y, z)
+        if map[k] and map[k].explored then return end
+        map[k] = value
+    end
+
+    local function getCell(x, y, z)
+        return map[key(x, y, z)]
+    end
+
+    local function setExplored(x, y, z, explored)
+        map[key(x, y, z)].explored = explored
+    end
+
+    local function getExplored(x, y, z)
+        local cell = getCell(x, y, z)
+        return cell and cell.explored or false
+    end
+
+    -- =======================
+    -- 🔹 Evaluación de vecinos
+    -- =======================
+
+    local function evaluateSurroundings()
+        local directions = {
+            {dx=0, dy=0, dz=1,  rot=nil, check=turtle.detectUp},    -- Arriba
+            {dx=0, dy=0, dz=-1, rot=nil, check=turtle.detectDown},  -- Abajo
+            {dx=0, dy=1, dz=0,  rot="N", check=turtle.detect},      -- Norte
+            {dx=1, dy=0, dz=0,  rot="E", check=turtle.detect},      -- Este
+            {dx=0, dy=-1,dz=0,  rot="S", check=turtle.detect},      -- Sur
+            {dx=-1,dy=0, dz=0,  rot="W", check=turtle.detect}       -- Oeste
+        }
+
+        for _, dir in ipairs(directions) do
+            local nx, ny, nz = Pos.x + dir.dx, Pos.y + dir.dy, Pos.z + dir.dz
+            local explored = getExplored(nx, ny, nz)
+            local node = getCell(nx, ny, nz)
+
+            -- Costo G = costo actual + 1
+            local gcost = getCell(Pos.x, Pos.y, Pos.z).gcost + 1
+            -- Costo H = distancia al objetivo (heurística Euclidiana)
+            local hcost = math.sqrt((nx - x2)^2 + (ny - y2)^2 + (nz - z2)^2)
+            local fcost = gcost + hcost
+
+            if (not node) or (node and node.fcost > fcost and not explored) then
+                if dir.rot then RotateTo(dir.rot) end
+                setCell(nx, ny, nz, {
+                    available = not dir.check(),
+                    explored = false,
+                    hcost = hcost,
+                    gcost = gcost,
+                    fcost = fcost,
+                    prevNode = {x = Pos.x, y = Pos.y, z = Pos.z}
+                })
+            end
+        end
+    end
+
+    -- =======================
+    -- 🔹 Reconstrucción de camino
+    -- =======================
+
+    local function buildPath(x, y, z)
+        local path = {}
+        local current = {x = x, y = y, z = z}
+        while current do
+            table.insert(path, 1, current)
+            local cell = getCell(current.x, current.y, current.z)
+            if cell and cell.prevNode and cell.prevNode.x then
+                current = cell.prevNode
+            else
+                break
+            end
+        end
+        return path
+    end
+
+    -- =======================
+    -- 🔹 Inicialización
+    -- =======================
+
+    map = {}
+
+    if x1 == x2 and y1 == y2 and z1 == z2 then
+        return {{x = x1, y = y1, z = z1}}
+    end
+
+    local initialHcost = math.sqrt((Pos.x - x2)^2 + (Pos.y - y2)^2 + (Pos.z - z2)^2)
+    setCell(Pos.x, Pos.y, Pos.z, {
+        available = true,
+        explored = true,
+        hcost = initialHcost,
+        gcost = 0,
+        fcost = initialHcost,
+        prevNode = {x = nil, y = nil, z = nil}
+    })
+
+    -- =======================
+    -- 🔹 Bucle principal A*
+    -- =======================
+
+    while true do
+        if Pos.x == x2 and Pos.y == y2 and Pos.z == z2 then
+            local path = buildPath(x2, y2, z2)
+
+            -- Guardar en archivo
+            local filename = string.format("%d_%d_%d_to_%d_%d_%d.txt", x1, y1, z1, x2, y2, z2)
+            local file = fs.open(GetPath(filename), "w")
+            if file then
+                for _, step in ipairs(path) do
+                    file.writeLine(string.format("%d,%d,%d", step.x, step.y, step.z))
+                end
+                file.close()
+                print("Ruta guardada en: " .. filename)
+            else
+                print("Error al crear el archivo")
+            end
+            return path
+        end
+
+        evaluateSurroundings()
+
+        -- Buscar el nodo con menor F (y H en caso de empate)
+        local lowestNode, lowestF, lowestH = nil, math.huge, math.huge
+        for index, data in pairs(map) do
+            if data.available and not data.explored then
+                if data.fcost < lowestF or (data.fcost == lowestF and data.hcost < lowestH) then
+                    local x, y, z = parseKey(index)
+                    lowestNode = {x = x, y = y, z = z}
+                    lowestF, lowestH = data.fcost, data.hcost
+                end
+            end
+        end
+
+        -- Si no hay nodo disponible, no hay camino posible
+        if not lowestNode then
+            print("No se encontró camino.")
+            return nil
+        end
+
+        print("Nodo escogido:", lowestNode.x, lowestNode.y, lowestNode.z)
+        moveBetweenExploredNodes(Pos.x, Pos.y, Pos.z, lowestNode.x, lowestNode.y, lowestNode.z)
+        setExplored(Pos.x, Pos.y, Pos.z, true)
+    end
+end
+
+
+--- Carga una ruta desde un archivo y navega siguiendo los puntos.
+-- Si no puede completar la ruta, recalcula un nuevo camino con A*.
+-- @param filename (string) Nombre del archivo donde está la ruta guardada.
+-- @param reverse (boolean) Si es true, invierte el orden del camino.
+-- @return (table) Tabla con la ruta completa que se navegó.
+function LoadPathFromFile(filename, reverse)
+
+    -- Verificar si el archivo existe
+    if not fs.exists(GetPath(filename)) then
+        print("Archivo no encontrado: " .. filename)
+        return nil
+    end
+
+    -- Leer el archivo línea por línea y construir la ruta
+    local file = fs.open(GetPath(filename), "r")
+    local path = {}
+    while true do
+        local line = file.readLine()
+        if not line then break end
+        local x, y, z = string.match(line, "(-?%d+),(-?%d+),(-?%d+)")
+        table.insert(path, { x = tonumber(x), y = tonumber(y), z = tonumber(z) })
+    end
+    file.close()
+
+    -- Si reverse = true, invertimos el orden de la ruta
+    if reverse then
+        local reversed = {}
+        for i = #path, 1, -1 do
+            table.insert(reversed, path[i])
+        end
+        path = reversed
+    end
+
+    -- Navegar la ruta
+    local navigatedPath = {}
+    for i = 1, #path do
+        local success = GoTo(path[i].x, path[i].y, path[i].z)
+
+        -- Si el movimiento falla, recalcular la ruta con A*
+        if success == false then
+            print("Ruta interrumpida. Recalculando con A*...")
+
+            -- Calcular nueva ruta desde posición actual hasta el destino final original
+            local newPath = AStar(Pos.x, Pos.y, Pos.z, path[#path].x, path[#path].y, path[#path].z)
+
+            -- Crear nuevo archivo combinando el camino recorrido y el nuevo camino
+            local newFilename = string.format("%d_%d_%d_to_%d_%d_%d.txt",
+                navigatedPath[1].x, navigatedPath[1].y, navigatedPath[1].z,
+                newPath[#newPath].x, newPath[#newPath].y, newPath[#newPath].z)
+
+            local file = fs.open(GetPath(newFilename), "w")
+            local finalPath = DeepCopyTable(navigatedPath)
+
+            if file then
+                -- Guardar lo que ya se navegó
+                for _, step in ipairs(navigatedPath) do
+                    file.writeLine(string.format("%d,%d,%d", step.x, step.y, step.z))
+                end
+                -- Guardar el nuevo camino
+                for _, step in ipairs(newPath) do
+                    file.writeLine(string.format("%d,%d,%d", step.x, step.y, step.z))
+                    table.insert(finalPath, step)
+                end
+                file.close()
+                print("Ruta guardada en: " .. newFilename)
+            else
+                print("Error al crear el archivo")
+            end
+            return finalPath
+        end
+
+        -- Si el movimiento fue exitoso, añadirlo al camino navegado
+        navigatedPath[i] = { x = path[i].x, y = path[i].y, z = path[i].z }
+    end
+
+    -- Si todo salió bien, devolver la ruta original
+    return path
+end
+
+
+--- Navega entre dos puntos utilizando rutas guardadas si son viables.
+-- Si no encuentra una ruta óptima, calcula una nueva con A*.
+-- @param x1, y1, z1 (number) Coordenadas de inicio.
+-- @param x2, y2, z2 (number) Coordenadas de destino.
+function SmartNavigate(x1, y1, z1, x2, y2, z2)
+
+    -- Si la posición inicial es igual a la final, no hacemos nada
+    if x1 == x2 and y1 == y2 and z1 == z2 then
+        return
+    end
+
+    local travelDistance = math.abs(x1 - x2) + math.abs(y1 - y2) + math.abs(z1 - z2)
+    local availablePaths = getRoutesFromFolder(BaseDir)
+
+    -- Variables de control
+    local selectedPath = -1
+    local selectedPathDistance = -1
+    local reversedPath = false
+    local saveNewPath = false
+    local useSavedPath = false
+
+    -- Buscar rutas guardadas que puedan reducir el viaje
+    for index, path in pairs(availablePaths) do
+        local reversed = false
+
+        -- Caso 1: La ruta coincide con la solicitada (mismo sentido)
+        if (path.x1 == x1 and path.y1 == y1 and path.z1 == z1 and
+            path.x2 == x2 and path.y2 == y2 and path.z2 == z2) then
+            selectedPath = index
+            useSavedPath = true
+            break
+
+        -- Caso 2: La ruta coincide pero en sentido inverso
+        elseif (path.x1 == x2 and path.y1 == y2 and path.z1 == z2 and
+                path.x2 == x1 and path.y2 == y1 and path.z2 == z1) then
+            selectedPath = index
+            reversedPath = true
+            useSavedPath = true
+            break
+        end
+
+        -- Calcular distancias aproximadas para evaluar la viabilidad
+        local distToKnownPath = math.abs(path.x1 - x1) + math.abs(path.y1 - y1) + math.abs(path.z1 - z1)
+        local distToKnownPathRev = math.abs(path.x2 - x1) + math.abs(path.y2 - y1) + math.abs(path.z2 - z1)
+
+        local distFromKnownPathToEnd = math.abs(path.x2 - x2) + math.abs(path.y2 - y2) + math.abs(path.z2 - z2)
+        local distFromKnownPathToEndRev = math.abs(path.x1 - x2) + math.abs(path.y1 - y2) + math.abs(path.z1 - z2)
+
+        local pathDistance = math.abs(path.x1 - path.x2) + math.abs(path.y1 - path.y2) + math.abs(path.z1 - path.z2)
+
+        -- Distancia total en ambos sentidos
+        local totalDistance = distToKnownPath + pathDistance + distFromKnownPathToEnd
+        local totalDistanceRev = distToKnownPathRev + pathDistance + distFromKnownPathToEndRev
+
+        -- Elegir el sentido más eficiente
+        local minDistance = totalDistance
+        if totalDistanceRev < totalDistance then
+            reversed = true
+            minDistance = totalDistanceRev
+        end
+
+        -- Seleccionar esta ruta si es suficientemente buena
+        if (1.25 * travelDistance > minDistance) and (selectedPath == -1 or minDistance < selectedPathDistance) then
+            selectedPath = index
+            selectedPathDistance = minDistance
+            useSavedPath = true
+            reversedPath = reversed
+        end
+
+        -- Debug opcional
+        -- print(string.format("Ruta %d: Distancia viaje=%d, RutaConocida=%d", index, travelDistance, minDistance))
+    end
+
+    -- Definir segmentos de la ruta final
+    local path1, path2, path3 = {}, {}, {}
+
+    if selectedPath < 0 then
+        -- No se encontró ruta útil: usar A* completo
+        print("No se encontró ruta viable. Calculando A* completo...")
+        AStar(x1, y1, z1, x2, y2, z2)
+
+    elseif reversedPath == false then
+        -- Ruta encontrada en orden normal
+        print("Ruta viable encontrada (orden normal)")
+        saveNewPath = true
+        path1 = AStar(x1, y1, z1, availablePaths[selectedPath].x1, availablePaths[selectedPath].y1, availablePaths[selectedPath].z1)
+        path2 = LoadPathFromFile(string.format("%d_%d_%d_to_%d_%d_%d.txt",
+            availablePaths[selectedPath].x1, availablePaths[selectedPath].y1, availablePaths[selectedPath].z1,
+            availablePaths[selectedPath].x2, availablePaths[selectedPath].y2, availablePaths[selectedPath].z2),
+            false)
+        path3 = AStar(availablePaths[selectedPath].x2, availablePaths[selectedPath].y2, availablePaths[selectedPath].z2, x2, y2, z2)
+
+    else
+        -- Ruta encontrada pero invertida
+        print("Ruta viable encontrada (invertida)")
+        saveNewPath = true
+        path1 = AStar(x1, y1, z1, availablePaths[selectedPath].x2, availablePaths[selectedPath].y2, availablePaths[selectedPath].z2)
+        path2 = LoadPathFromFile(string.format("%d_%d_%d_to_%d_%d_%d.txt",
+            availablePaths[selectedPath].x1, availablePaths[selectedPath].y1, availablePaths[selectedPath].z1,
+            availablePaths[selectedPath].x2, availablePaths[selectedPath].y2, availablePaths[selectedPath].z2),
+            true)
+        path3 = AStar(availablePaths[selectedPath].x1, availablePaths[selectedPath].y1, availablePaths[selectedPath].z1, x2, y2, z2)
+    end
+
+    -- Si generamos una nueva combinación, guardarla
+    if saveNewPath then
+        local filename = string.format("%d_%d_%d_to_%d_%d_%d.txt", x1, y1, z1, x2, y2, z2)
+        local file = fs.open(GetPath(filename), "w")
+
+        if file then
+            for _, step in ipairs(path1) do file.writeLine(string.format("%d,%d,%d", step.x, step.y, step.z)) end
+            for _, step in ipairs(path2) do file.writeLine(string.format("%d,%d,%d", step.x, step.y, step.z)) end
+            for _, step in ipairs(path3) do file.writeLine(string.format("%d,%d,%d", step.x, step.y, step.z)) end
+            file.close()
+            print("Ruta guardada en: " .. filename)
+        else
+            print("Error al crear el archivo")
+        end
+    end
+end
+
+-- Carpeta base
+BaseDir = "routes"
+
+-- Crear carpeta si no existe
+if not fs.exists(BaseDir) then
+    fs.makeDir(BaseDir)
+end
+
+GetInitialPos()
+print("Introducir posicion final en x")
+X = tonumber(io.read())
+print("Introducir posicion final en y")
+Y = tonumber(io.read())
+print("Introducir posicion final en z")
+Z = tonumber(io.read())
+X0 = Pos.x
+Y0 = Pos.y
+Z0 = Pos.z
+SmartNavigate(X0, Y0, Z0, X, Y, Z)
+io.read()
+SmartNavigate(X, Y, Z, X0, Y0, Z0)
