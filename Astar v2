@@ -422,14 +422,13 @@ function AStar(x1, y1, z1, x2, y2, z2)
         -- Mover el turtle por cada paso
         for _, p in ipairs(finalPath) do
             local prev = getCell(p.x, p.y, p.z).prevNode
-            print("Moviendo a:", p.x, p.y, p.z, prev.x, prev.y, prev.z)
+            --print("Moviendo a:", p.x, p.y, p.z, prev.x, prev.y, prev.z)
             local success = GoTo(p.x, p.y, p.z)
             if not success then
                 --print("Error al mover a:", p.x, p.y, p.z)
                 return false
             end
         end
-        --io.read()
         return true
     end
 
@@ -610,14 +609,13 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
                 useSavedPath = true
                 reversedPath = reversed
         end
-        print("Ruta actual", index)
+        --[[print("Ruta actual", index)
         print("Distancia del viaje:", travelDistance)
         print("Distancia con viaje conocido:", minDistance)
         print(path.x1, path.y1, path.z1, path.x2, path.y2, path.z2)
         print(tostring(1.25 * travelDistance > minDistance) .. "and (" .. tostring(selectedPath == -1) .. " or " .. tostring(minDistance < selectedPathDistance) .. ")")
         print("Ruta seleccionada", selectedPath)
-        print("")
-        io.read()
+        print("") ]]--
     end
     local path1 = {}
     local path2 = {}
@@ -690,7 +688,6 @@ function ReadPointsFromFile(filename)
     while true do
         local line = file.readLine()
         if not line then
-            print("No filas")
             break
         end
 
