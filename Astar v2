@@ -209,10 +209,6 @@ function AStar(x1, y1, z1, x2, y2, z2)
       return tonumber(x), tonumber(y), tonumber(z)
     end
     
-    --function setCell(x, y, z, value)
-    --    map[key(x, y, z)] = value
-    --end
-    
     function setCell(x, y, z, value)
         local k = key(x, y, z)
         if map[k] and map[k].explored then
@@ -469,8 +465,8 @@ function AStar(x1, y1, z1, x2, y2, z2)
             
         end
     	evaluateSurroundings()
-        local lowestFCost = 1000000000
-        local lowestHCost = 1000000000
+        local lowestFCost = math.huge
+        local lowestHCost = math.huge
         local lowestCostNode
         local prevNode
         for index, data in pairs(map) do
@@ -661,6 +657,59 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
             print("Error al crear el archivo")
         end
     end
+end
+
+--- Lee un archivo con formato "x,y,z,N" y devuelve una tabla con los datos.
+-- @param filename (string) Nombre del archivo a leer.
+-- @return table Array con tablas {x, y, z, n}
+function ReadPointsFromFile(filename)
+    if not fs.exists(filename) then
+        print("Archivo no encontrado: " .. filename)
+        return nil
+    end
+
+    local file = fs.open(filename, "r")
+    local points = {}
+
+    while true do
+        local line = file.readLine()
+        if not line then break end
+
+        -- Extraer 4 números: x, y, z, N
+        local x, y, z, C = string.match(line, "(-?%d+),(-?%d+),(-?%d+),(-?%d+)")
+        if x and y and z and n then
+            table.insert(points, {
+                x = tonumber(x),
+                y = tonumber(y),
+                z = tonumber(z),
+                C = C
+            })
+        end
+    end
+
+    file.close()
+    return points
+end
+
+function Work()
+    local points = ReadPointsFromFile("Instructions")
+    SmartNavigate(Pos.x, Pos.y, Pos.z, points[1].x, points[1].y, points[1].z)
+    RotateTo(points[1].C)
+    for i = 2, 16 do
+        turtle.select(i)
+        turtle.drop(64)
+    end
+    for i = 2, #points do
+        SmartNavigate(Pos.x, Pos.y, Pos.z, points[i].x, points[i].y, points[i].z)
+        RotateTo(points[i].C)
+        while true do
+            local success = turtle.suck(64)
+            if success == false then
+                break
+            end
+        end
+    end
+    os.sleep(60)
 end
 
 -- Carpeta base
