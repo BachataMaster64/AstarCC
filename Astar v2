@@ -659,7 +659,7 @@ function SmartNavigate(x1, y1, z1, x2, y2, z2)
     end
 end
 
---- Lee un archivo con formato "x,y,z,N" y devuelve una tabla con los datos.
+--- Lee un archivo con formato "x,y,z,C" y devuelve una tabla con los datos.
 -- @param filename (string) Nombre del archivo a leer.
 -- @return table Array con tablas {x, y, z, n}
 function ReadPointsFromFile(filename)
@@ -673,12 +673,14 @@ function ReadPointsFromFile(filename)
 
     while true do
         local line = file.readLine()
-        if not line then break end
+        if not line then
+            print("No filas")
+            break
+        end
 
         -- Extraer 4 números: x, y, z, N
-        local x, y, z, C = string.match(line, "(-?%d+),(-?%d+),(-?%d+),(-?%d+)")
+        local x, y, z, C = string.match(line, "(-?%d+),(-?%d+),(-?%d+),([A-Za-z])")
         if x and y and z and C then
-            print(x, y, z, C)
             table.insert(points, {
                 x = tonumber(x),
                 y = tonumber(y),
