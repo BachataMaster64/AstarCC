@@ -69,7 +69,8 @@ function CheckFuel()
             return
         end
         print("Esperando por combustible...")
-        turtle.refuel(64)
+	turtle.select(1)
+        turtle.refuel(63)
         os.sleep(60)
     end
 
