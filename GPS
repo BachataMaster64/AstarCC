@@ -1,0 +1,17 @@
+local modem = peripheral.find("modem") or error("No modem attached", 0)
+local openChannel = 43
+local x = 0 -- Rellenar aqui
+local y = 0 -- Rellenar aqui
+local z = 0 -- Rellenar aqui
+local type = "" -- Rellenar aqui (0, X, Y, Z)
+modem.closeAll()
+modem.open(openChannel)
+
+while true do
+    local channel, replyChannel
+    repeat
+    _, _, channel, replyChannel, _, _ = os.pullEvent("modem_message")
+    until channel == openChannel
+
+    modem.transmit(replyChannel, openChannel, type  .. "," .. x .. "," .. y .. "," .. z)
+end
