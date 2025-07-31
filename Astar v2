@@ -60,6 +60,93 @@ function GetInitialPos()
     return Pos
 end
 
+function GetInitialPosGPS()
+    local modem = peripheral.find("modem") or error("No modem attached", 0)
+    local openChannel = 34
+    local gpsChannel = 43
+    local recMessages = {}
+    modem.closeAll()
+    modem.open(openChannel)
+
+    modem.transmit(gpsChannel, openChannel, "GPS request")
+
+    local channel, message, distance
+    for i = 1, 4 do
+        repeat
+        _, _, channel, _, message, distance = os.pullEvent("modem_message")
+        until channel == openChannel
+        local t, x, y, z = string.match(message, "([A-Za-z]),(-?%d+),(-?%d+),(-?%d+)")
+
+        -- Convertimos x, y, z a números
+        x = tonumber(x)
+        y = tonumber(y)
+        z = tonumber(z)
+        recMessages[t] = {x = x, y = y, z = z, distance = distance}
+    end
+
+    local x1 = ((recMessages["X"].distance - recMessages["0"].distance) * (recMessages["X"].distance - recMessages["0"].distance) - 
+    recMessages["X"].x * recMessages["X"].x + recMessages["0"].x * recMessages["0"].x) / (2 * (recMessages["0"].x - recMessages["X"].x))
+
+    local y1 = ((recMessages["Y"].distance - recMessages["0"].distance) * (recMessages["Y"].distance - recMessages["0"].distance) - 
+    recMessages["Y"].y * recMessages["Y"].y + recMessages["0"].y * recMessages["0"].y) / (2 * (recMessages["0"].y - recMessages["Y"].y))
+
+    local z1 = ((recMessages["Z"].distance - recMessages["0"].distance) * (recMessages["Z"].distance - recMessages["0"].distance) - 
+    recMessages["Z"].z * recMessages["Z"].z + recMessages["0"].z * recMessages["0"].z) / (2 * (recMessages["0"].z - recMessages["Z"].z))
+
+    -- Otra vez en una posición diferente para determinar direccion
+    for i = 1, 4 do --Cuatro direcciones cardinales
+        if turtle.forward() == true then
+            break
+        end
+        turtle.turnRight()
+        if i == 4 then
+            error("No hay espacio para determinar dirección", 0)
+        end
+    end
+
+    modem.transmit(gpsChannel, openChannel, "GPS request")
+
+    local channel, message, distance
+    for i = 1, 4 do
+        repeat
+        _, _, channel, _, message, distance = os.pullEvent("modem_message")
+        until channel == openChannel
+        local t, x, y, z = string.match(message, "([A-Za-z]),(-?%d+),(-?%d+),(-?%d+)")
+
+        -- Convertimos x, y, z a números
+        x = tonumber(x)
+        y = tonumber(y)
+        z = tonumber(z)
+        recMessages[t] = {x = x, y = y, z = z, distance = distance}
+    end
+
+    turtle.back() -- Volver a la ubicación original
+
+    local x2 = ((recMessages["X"].distance - recMessages["0"].distance) * (recMessages["X"].distance - recMessages["0"].distance) - 
+    recMessages["X"].x * recMessages["X"].x + recMessages["0"].x * recMessages["0"].x) / (2 * (recMessages["0"].x - recMessages["X"].x))
+
+    local y2 = ((recMessages["Y"].distance - recMessages["0"].distance) * (recMessages["Y"].distance - recMessages["0"].distance) - 
+    recMessages["Y"].y * recMessages["Y"].y + recMessages["0"].y * recMessages["0"].y) / (2 * (recMessages["0"].y - recMessages["Y"].y))
+
+    local z2 = ((recMessages["Z"].distance - recMessages["0"].distance) * (recMessages["Z"].distance - recMessages["0"].distance) - 
+    recMessages["Z"].z * recMessages["Z"].z + recMessages["0"].z * recMessages["0"].z) / (2 * (recMessages["0"].z - recMessages["Z"].z))
+
+    Pos["x"] = x1
+    Pos["y"] = y1
+    Pos["z"] = z1
+
+    if x2 > x1 then
+        Pos["facing"] = "E"
+    elseif x2 < x1 then
+        Pos["facing"] = "W"
+    elseif y2 > y1 then
+        Pos["facing"] = "N"
+    else
+        Pos["facing"] = "S"
+    end
+
+end
+
 function CheckFuel()
     while true do
         local fuelLimit = turtle.getFuelLimit()
@@ -69,8 +156,7 @@ function CheckFuel()
             return
         end
         print("Esperando por combustible...")
-	turtle.select(1)
-        turtle.refuel(63)
+        turtle.refuel(64)
         os.sleep(60)
     end
 
@@ -736,7 +822,7 @@ if not fs.exists(BaseDir) then
     fs.makeDir(BaseDir)
 end
 
-GetInitialPos()
+GetInitialPosGPS()
 while true do
     WorkRoutine()
     os.sleep(300)
