@@ -62,7 +62,35 @@ end
 
 function GetInitialPosGPS()
     Pos = {}
-    local modem = peripheral.find("modem") or error("No modem attached", 0)
+    local x1, z1, y1 = gps.locate()
+    x1 = -x1
+    for i = 1, 4 do --Cuatro direcciones cardinales
+        if turtle.forward() == true then
+            break
+        end
+        turtle.turnRight()
+        if i == 4 then
+            error("No hay espacio para determinar dirección", 0)
+        end
+    end
+    local x2, z2, y2 = gps.locate()
+    x2 = -x2
+    turtle.back() -- Volver a la ubicación original
+    Pos["x"] = x1
+    Pos["y"] = y1
+    Pos["z"] = z1
+
+    if x2 > x1 then
+        Pos["facing"] = "E"
+    elseif x2 < x1 then
+        Pos["facing"] = "W"
+    elseif y2 > y1 then
+        Pos["facing"] = "N"
+    else
+        Pos["facing"] = "S"
+    end
+    print(Pos.x, Pos.y, Pos.z, Pos.facing)
+    --[[local modem = peripheral.find("modem") or error("No modem attached", 0)
     local openChannel = 34
     local gpsChannel = 43
     local recMessages = {}
@@ -132,20 +160,7 @@ function GetInitialPosGPS()
 
     local z2 = ((recMessages["Z"].distance - recMessages["O"].distance) * (recMessages["Z"].distance - recMessages["O"].distance) - 
     recMessages["Z"].z * recMessages["Z"].z + recMessages["O"].z * recMessages["O"].z) / (2 * (recMessages["O"].z - recMessages["Z"].z))
-
-    Pos["x"] = x1
-    Pos["y"] = y1
-    Pos["z"] = z1
-
-    if x2 > x1 then
-        Pos["facing"] = "E"
-    elseif x2 < x1 then
-        Pos["facing"] = "W"
-    elseif y2 > y1 then
-        Pos["facing"] = "N"
-    else
-        Pos["facing"] = "S"
-    end
+    ]]--
 
 end
 
