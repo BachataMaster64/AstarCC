@@ -61,6 +61,7 @@ function GetInitialPos()
 end
 
 function GetInitialPosGPS()
+    Pos = {}
     local modem = peripheral.find("modem") or error("No modem attached", 0)
     local openChannel = 34
     local gpsChannel = 43
