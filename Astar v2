@@ -81,6 +81,7 @@ function GetInitialPosGPS()
         x = tonumber(x)
         y = tonumber(y)
         z = tonumber(z)
+        print(t, x, y, z)
         recMessages[t] = {x = x, y = y, z = z, distance = distance}
     end
 
