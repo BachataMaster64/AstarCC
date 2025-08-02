@@ -85,14 +85,14 @@ function GetInitialPosGPS()
         recMessages[t] = {x = x, y = y, z = z, distance = distance}
     end
 
-    local x1 = ((recMessages["X"].distance - recMessages["0"].distance) * (recMessages["X"].distance - recMessages["0"].distance) - 
-    recMessages["X"].x * recMessages["X"].x + recMessages["0"].x * recMessages["0"].x) / (2 * (recMessages["0"].x - recMessages["X"].x))
+    local x1 = ((recMessages["X"].distance - recMessages["O"].distance) * (recMessages["X"].distance - recMessages["O"].distance) - 
+    recMessages["X"].x * recMessages["X"].x + recMessages["O"].x * recMessages["O"].x) / (2 * (recMessages["O"].x - recMessages["X"].x))
 
-    local y1 = ((recMessages["Y"].distance - recMessages["0"].distance) * (recMessages["Y"].distance - recMessages["0"].distance) - 
-    recMessages["Y"].y * recMessages["Y"].y + recMessages["0"].y * recMessages["0"].y) / (2 * (recMessages["0"].y - recMessages["Y"].y))
+    local y1 = ((recMessages["Y"].distance - recMessages["O"].distance) * (recMessages["Y"].distance - recMessages["O"].distance) - 
+    recMessages["Y"].y * recMessages["Y"].y + recMessages["O"].y * recMessages["O"].y) / (2 * (recMessages["O"].y - recMessages["Y"].y))
 
-    local z1 = ((recMessages["Z"].distance - recMessages["0"].distance) * (recMessages["Z"].distance - recMessages["0"].distance) - 
-    recMessages["Z"].z * recMessages["Z"].z + recMessages["0"].z * recMessages["0"].z) / (2 * (recMessages["0"].z - recMessages["Z"].z))
+    local z1 = ((recMessages["Z"].distance - recMessages["O"].distance) * (recMessages["Z"].distance - recMessages["O"].distance) - 
+    recMessages["Z"].z * recMessages["Z"].z + recMessages["O"].z * recMessages["O"].z) / (2 * (recMessages["O"].z - recMessages["Z"].z))
 
     -- Otra vez en una posición diferente para determinar direccion
     for i = 1, 4 do --Cuatro direcciones cardinales
@@ -123,14 +123,14 @@ function GetInitialPosGPS()
 
     turtle.back() -- Volver a la ubicación original
 
-    local x2 = ((recMessages["X"].distance - recMessages["0"].distance) * (recMessages["X"].distance - recMessages["0"].distance) - 
-    recMessages["X"].x * recMessages["X"].x + recMessages["0"].x * recMessages["0"].x) / (2 * (recMessages["0"].x - recMessages["X"].x))
+    local x2 = ((recMessages["X"].distance - recMessages["O"].distance) * (recMessages["X"].distance - recMessages["O"].distance) - 
+    recMessages["X"].x * recMessages["X"].x + recMessages["O"].x * recMessages["O"].x) / (2 * (recMessages["O"].x - recMessages["X"].x))
 
-    local y2 = ((recMessages["Y"].distance - recMessages["0"].distance) * (recMessages["Y"].distance - recMessages["0"].distance) - 
-    recMessages["Y"].y * recMessages["Y"].y + recMessages["0"].y * recMessages["0"].y) / (2 * (recMessages["0"].y - recMessages["Y"].y))
+    local y2 = ((recMessages["Y"].distance - recMessages["O"].distance) * (recMessages["Y"].distance - recMessages["O"].distance) - 
+    recMessages["Y"].y * recMessages["Y"].y + recMessages["O"].y * recMessages["O"].y) / (2 * (recMessages["O"].y - recMessages["Y"].y))
 
-    local z2 = ((recMessages["Z"].distance - recMessages["0"].distance) * (recMessages["Z"].distance - recMessages["0"].distance) - 
-    recMessages["Z"].z * recMessages["Z"].z + recMessages["0"].z * recMessages["0"].z) / (2 * (recMessages["0"].z - recMessages["Z"].z))
+    local z2 = ((recMessages["Z"].distance - recMessages["O"].distance) * (recMessages["Z"].distance - recMessages["O"].distance) - 
+    recMessages["Z"].z * recMessages["Z"].z + recMessages["O"].z * recMessages["O"].z) / (2 * (recMessages["O"].z - recMessages["Z"].z))
 
     Pos["x"] = x1
     Pos["y"] = y1
