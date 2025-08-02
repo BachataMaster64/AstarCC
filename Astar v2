@@ -76,7 +76,7 @@ function GetInitialPosGPS()
         _, _, channel, _, message, distance = os.pullEvent("modem_message")
         until channel == openChannel
         local t, x, y, z = string.match(message, "([A-Za-z]),(-?%d+),(-?%d+),(-?%d+)")
-        print(message)
+        print(i, message)
         -- Convertimos x, y, z a numeros
         x = tonumber(x)
         y = tonumber(y)
