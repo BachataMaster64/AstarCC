@@ -173,6 +173,7 @@ function CheckFuel()
             return
         end
         print("Esperando por combustible...")
+	turtle.select(1)
         turtle.refuel(64)
         os.sleep(60)
     end
@@ -309,7 +310,6 @@ end
 
 function GoTo(x, y, z)
     -- va al punto
-    CheckFuel()
     local successX = XInputMovement(x)
     local successY = YInputMovement(y)
     local successZ = ZInputMovement(z)
@@ -820,6 +820,7 @@ function WorkRoutine()
         turtle.drop(64)
     end
     for i = 2, #points do
+	CheckFuel()
         SmartNavigate(Pos.x, Pos.y, Pos.z, points[i].x, points[i].y, points[i].z)
         RotateTo(points[i].C)
         while true do
