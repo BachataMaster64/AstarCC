@@ -90,78 +90,6 @@ function GetInitialPosGPS()
         Pos["facing"] = "S"
     end
     print(Pos.x, Pos.y, Pos.z, Pos.facing)
-    --[[local modem = peripheral.find("modem") or error("No modem attached", 0)
-    local openChannel = 34
-    local gpsChannel = 43
-    local recMessages = {}
-    modem.closeAll()
-    modem.open(openChannel)
-
-    modem.transmit(gpsChannel, openChannel, "GPS request")
-
-    local channel, message, distance
-    for i = 1, 4 do
-        repeat
-        _, _, channel, _, message, distance = os.pullEvent("modem_message")
-        until channel == openChannel
-        local t, x, y, z = string.match(message, "([A-Za-z]),(-?%d+),(-?%d+),(-?%d+)")
-        print(i, message)
-        -- Convertimos x, y, z a numeros
-        x = tonumber(x)
-        y = tonumber(y)
-        z = tonumber(z)
-        print(t, x, y, z)
-        recMessages[t] = {x = x, y = y, z = z, distance = distance}
-    end
-
-    local x1 = ((recMessages["X"].distance - recMessages["O"].distance) * (recMessages["X"].distance - recMessages["O"].distance) - 
-    recMessages["X"].x * recMessages["X"].x + recMessages["O"].x * recMessages["O"].x) / (2 * (recMessages["O"].x - recMessages["X"].x))
-
-    local y1 = ((recMessages["Y"].distance - recMessages["O"].distance) * (recMessages["Y"].distance - recMessages["O"].distance) - 
-    recMessages["Y"].y * recMessages["Y"].y + recMessages["O"].y * recMessages["O"].y) / (2 * (recMessages["O"].y - recMessages["Y"].y))
-
-    local z1 = ((recMessages["Z"].distance - recMessages["O"].distance) * (recMessages["Z"].distance - recMessages["O"].distance) - 
-    recMessages["Z"].z * recMessages["Z"].z + recMessages["O"].z * recMessages["O"].z) / (2 * (recMessages["O"].z - recMessages["Z"].z))
-
-    -- Otra vez en una posición diferente para determinar direccion
-    for i = 1, 4 do --Cuatro direcciones cardinales
-        if turtle.forward() == true then
-            break
-        end
-        turtle.turnRight()
-        if i == 4 then
-            error("No hay espacio para determinar dirección", 0)
-        end
-    end
-
-    modem.transmit(gpsChannel, openChannel, "GPS request")
-
-    local channel, message, distance
-    for i = 1, 4 do
-        repeat
-        _, _, channel, _, message, distance = os.pullEvent("modem_message")
-        until channel == openChannel
-        local t, x, y, z = string.match(message, "([A-Za-z]),(-?%d+),(-?%d+),(-?%d+)")
-
-        -- Convertimos x, y, z a números
-        x = tonumber(x)
-        y = tonumber(y)
-        z = tonumber(z)
-        recMessages[t] = {x = x, y = y, z = z, distance = distance}
-    end
-
-    turtle.back() -- Volver a la ubicación original
-
-    local x2 = ((recMessages["X"].distance - recMessages["O"].distance) * (recMessages["X"].distance - recMessages["O"].distance) - 
-    recMessages["X"].x * recMessages["X"].x + recMessages["O"].x * recMessages["O"].x) / (2 * (recMessages["O"].x - recMessages["X"].x))
-
-    local y2 = ((recMessages["Y"].distance - recMessages["O"].distance) * (recMessages["Y"].distance - recMessages["O"].distance) - 
-    recMessages["Y"].y * recMessages["Y"].y + recMessages["O"].y * recMessages["O"].y) / (2 * (recMessages["O"].y - recMessages["Y"].y))
-
-    local z2 = ((recMessages["Z"].distance - recMessages["O"].distance) * (recMessages["Z"].distance - recMessages["O"].distance) - 
-    recMessages["Z"].z * recMessages["Z"].z + recMessages["O"].z * recMessages["O"].z) / (2 * (recMessages["O"].z - recMessages["Z"].z))
-    ]]--
-
 end
 
 function CheckFuel()
@@ -173,9 +101,9 @@ function CheckFuel()
             return
         end
         print("Esperando por combustible...")
-	turtle.select(1)
-        turtle.refuel(64)
-        os.sleep(60)
+	    turtle.select(1)
+        local success = turtle.refuel(64)
+        if success == false then os.sleep(60) end
     end
 
 end
@@ -373,7 +301,7 @@ function AStar(x1, y1, z1, x2, y2, z2)
         -- arriba
         explored = getExplored(Pos.x, Pos.y, Pos.z + 1)
         node = getCell(Pos.x, Pos.y, Pos.z + 1)
-        hcost = math.sqrt((Pos.x - x2) * (Pos.x - x2) + (Pos.y - y2) * (Pos.y - y2) + (Pos.z + 1 - z2) * (Pos.z + 1 - z2))
+        hcost = math.abs(Pos.x - x2) + math.abs(Pos.y - y2) + math.abs(Pos.z + 1 - z2)
         fcost = hcost + gcost
 		if (not node) or (node and node.fcost > fcost and not explored) then
             setCell(Pos.x, Pos.y, Pos.z + 1, {available = not turtle.detectUp(),
@@ -386,7 +314,7 @@ function AStar(x1, y1, z1, x2, y2, z2)
         -- abajo
         explored = getExplored(Pos.x, Pos.y, Pos.z - 1)
         node = getCell(Pos.x, Pos.y, Pos.z - 1)
-        hcost = math.sqrt((Pos.x - x2) * (Pos.x - x2) + (Pos.y - y2) * (Pos.y - y2) + (Pos.z - 1 - z2) * (Pos.z - 1 - z2))
+        hcost = math.abs(Pos.x - x2) + math.abs(Pos.y - y2) + math.abs(Pos.z - 1 - z2)
         fcost = hcost + gcost
 		if (not node) or (node and node.fcost > fcost and not explored) then
             setCell(Pos.x, Pos.y, Pos.z - 1, {available = not turtle.detectDown(),
@@ -399,7 +327,7 @@ function AStar(x1, y1, z1, x2, y2, z2)
         -- al norte
         explored = getExplored(Pos.x, Pos.y + 1, Pos.z)
         node = getCell(Pos.x, Pos.y + 1, Pos.z)
-        hcost = math.sqrt((Pos.x - x2) * (Pos.x - x2) + (Pos.y + 1 - y2) * (Pos.y + 1 - y2) + (Pos.z - z2) * (Pos.z - z2))
+        hcost = math.abs(Pos.x - x2) + math.abs(Pos.y + 1 - y2) + math.abs(Pos.z - z2)
         fcost = hcost + gcost
 		if (not node) or (node and node.fcost > fcost and not explored) then
             RotateTo("N")
@@ -413,7 +341,7 @@ function AStar(x1, y1, z1, x2, y2, z2)
         -- al este
         explored = getExplored(Pos.x + 1, Pos.y, Pos.z)
         node = getCell(Pos.x + 1, Pos.y, Pos.z)
-        hcost = math.sqrt((Pos.x + 1 - x2) * (Pos.x + 1 - x2) + (Pos.y - y2) * (Pos.y - y2) + (Pos.z - z2) * (Pos.z - z2))
+        hcost = math.abs(Pos.x + 1 - x2) + math.abs(Pos.y - y2) + math.abs(Pos.z - z2)
         fcost = hcost + gcost
 		if (not node) or (node and node.fcost > fcost and not explored) then
             RotateTo("E")
@@ -427,7 +355,7 @@ function AStar(x1, y1, z1, x2, y2, z2)
         -- al sur
         explored = getExplored(Pos.x, Pos.y - 1, Pos.z)
         node = getCell(Pos.x, Pos.y - 1, Pos.z)
-        hcost = math.sqrt((Pos.x - x2) * (Pos.x - x2) + (Pos.y - 1 - y2) * (Pos.y - 1 - y2) + (Pos.z - z2) * (Pos.z - z2))
+        hcost = math.abs(Pos.x - x2) + math.abs(Pos.y - 1 - y2) + math.abs(Pos.z - z2)
         fcost = hcost + gcost
 		if (not node) or (node and node.fcost > fcost and not explored) then
             RotateTo("S")
@@ -441,7 +369,7 @@ function AStar(x1, y1, z1, x2, y2, z2)
         -- al oeste
         explored = getExplored(Pos.x - 1, Pos.y, Pos.z)
         node = getCell(Pos.x - 1, Pos.y, Pos.z)
-        hcost = math.sqrt((Pos.x - 1 - x2) * (Pos.x - 1 - x2) + (Pos.y - y2) * (Pos.y - y2) + (Pos.z - z2) * (Pos.z - z2))
+        hcost = math.abs(Pos.x - 1 - x2) + math.abs(Pos.y - y2) + math.abs(Pos.z - z2)
         fcost = hcost + gcost
 		if (not node) or (node and node.fcost > fcost and not explored) then
             RotateTo("W")
@@ -840,6 +768,7 @@ if not fs.exists(BaseDir) then
     fs.makeDir(BaseDir)
 end
 
+os.sleep(10)
 GetInitialPosGPS()
 while true do
     WorkRoutine()
