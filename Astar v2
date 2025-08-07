@@ -92,7 +92,7 @@ function GetInitialPosGPS()
     print(Pos.x, Pos.y, Pos.z, Pos.facing)
 end
 
-function CheckFuel()
+function CheckFuel(x, y, z, facing)
     while true do
         local fuelLimit = turtle.getFuelLimit()
         local fuelLevel = turtle.getFuelLevel()
@@ -100,10 +100,16 @@ function CheckFuel()
         if fuelPercent > 0.2 then
             return
         end
-        print("Esperando por combustible...")
 	    turtle.select(1)
         local success = turtle.refuel(64)
-        if success == false then os.sleep(60) end
+        if success == false then
+            SmartNavigate(Pos.x, Pos.y, Pos.z, x, y, z)
+            RotateTo(facing)
+            turtle.select(1)
+            turtle.drop(64)
+            os.sleep(30)
+            turtle.suck(64) 
+        end
     end
 
 end
@@ -747,8 +753,8 @@ function WorkRoutine()
         turtle.select(i)
         turtle.drop(64)
     end
-    for i = 2, #points do
-	CheckFuel()
+    for i = 2, (#points - 1) do
+	CheckFuel(points[#points].x, points[#points].y, points[#points].z, points[#points].C)
         SmartNavigate(Pos.x, Pos.y, Pos.z, points[i].x, points[i].y, points[i].z)
         RotateTo(points[i].C)
         while true do
