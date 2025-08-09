@@ -133,7 +133,7 @@ function CheckFuel()
         local fuelLimit = turtle.getFuelLimit()
         local fuelLevel = turtle.getFuelLevel()
         local fuelPercent = fuelLevel / fuelLimit
-        if fuelPercent > 0.2 then
+        if fuelPercent >= 0.5 then
             return
         end
 	    turtle.select(1)
@@ -147,7 +147,6 @@ function CheckFuel()
             turtle.suck(64) 
         end
     end
-
 end
 
 function RotateTo(C)
@@ -857,7 +856,12 @@ end
 
 os.sleep(10)
 turtle.select(2)
-turtle.equipLeft() -- Equipar modem
+
+item = turtle.getItemDetail()
+if item and item.name != "minecraft.diamond_pickaxe" then
+    turtle.equipLeft() -- Equipar modem
+end
+
 GetInitialPosGPS()
 turtle.select(2)
 turtle.equipLeft() -- Equipar pico
