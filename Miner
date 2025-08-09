@@ -834,7 +834,7 @@ function WorkRoutine()
     turtle.select(2)
     turtle.equipLeft() -- Equipar pico
     local x, y = ChunkCoords(nChunk, 0, 0) -- Poner la esquina del chunk-0 (chunk superior derecho)
-    SmartNavigate(Pos.x, Pos.y, Pos.z, x, y, points[1].z)
+    SmartNavigate(Pos.x, Pos.y, Pos.z, x, y, Pos.z)
     RotateTo("E")
     turtle.select(1)
     ClearChunk()
