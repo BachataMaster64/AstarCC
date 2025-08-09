@@ -831,7 +831,7 @@ function WorkRoutine()
     local nChunk = ReadChunkFromFile("Chunk")
     EmptyInv()
     local x, y = ChunkCoords(nChunk, 0, 0) -- Poner la esquina del chunk-0 (chunk superior derecho)
-    SmartNavigate(Pos.x, Pos.y, Pos.z, x, y, Pos.z)
+    SmartNavigate(Pos.x, Pos.y, Pos.z, x, y, Pos.z) -- Definir segundo z
     RotateTo("E")
     turtle.select(1)
     ClearChunk()
