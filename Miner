@@ -858,7 +858,7 @@ os.sleep(10)
 turtle.select(2)
 
 item = turtle.getItemDetail()
-if item and item.name != "minecraft.diamond_pickaxe" then
+if item and item.name != "minecraft:diamond_pickaxe" then
     turtle.equipLeft() -- Equipar modem
 end
 
