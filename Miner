@@ -871,7 +871,7 @@ os.sleep(10)
 turtle.select(2)
 
 item = turtle.getItemDetail()
-if item and item.name != "minecraft:diamond_pickaxe" then
+if item and item.name ~= "minecraft:diamond_pickaxe" then
     turtle.equipLeft() -- Equipar modem
 end
 
@@ -880,4 +880,5 @@ turtle.select(2)
 turtle.equipLeft() -- Equipar pico
 while true do
     WorkRoutine()
+
 end
