@@ -129,22 +129,35 @@ end
 
 function CheckFuel()
     local points = ReadPointsFromFile("Instructions")
+
     while true do
         local fuelLimit = turtle.getFuelLimit()
         local fuelLevel = turtle.getFuelLevel()
         local fuelPercent = fuelLevel / fuelLimit
-        if fuelPercent >= 0.5 then
+
+        -- Si ya está al 100%, salir
+        if fuelLevel == fuelLimit then
             return
         end
-	    turtle.select(1)
-        local success = turtle.refuel(64)
-        if success == false then
-            SmartNavigate(Pos.x, Pos.y, Pos.z, points[2].x, points[2].y, points[2].z)
-            RotateTo(points[2].C)
+
+        -- Si está al 50% o menos, recargar hasta llenar
+        if fuelPercent <= 0.5 then
             turtle.select(1)
-            turtle.drop(64)
-            os.sleep(30)
-            turtle.suck(64) 
+            local success = turtle.refuel(64)
+
+            if not success then
+                -- Ir a la estación de carga
+                SmartNavigate(Pos.x, Pos.y, Pos.z, points[2].x, points[2].y, points[2].z)
+                RotateTo(points[2].C)
+                turtle.select(1)
+                turtle.drop(64)   -- Dejar balde vacío o carbón usado
+                os.sleep(30)      -- Esperar que se recargue
+                turtle.suck(64)   -- Tomar combustible
+            end
+        else
+            -- Combustible > 50% pero no lleno: recargar hasta 100%
+            turtle.select(1)
+            turtle.refuel(64)
         end
     end
 end
