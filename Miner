@@ -797,17 +797,20 @@ function ReadChunkFromFile(filename)
 
     local file = fs.open(filename, "r")
     local n = 0
+    local z = 0
 
     while true do
         local line = file.readLine()
         if not line then
             break
         end
-        n = tonumber(line)
+        n, z = string.match(line, "(-?%d+),(-?%d+)")
+        n = tonumber(n)
+        z = tonumber(z)
     end
 
     file.close()
-    return n
+    return n, z
 end
 
 function EmptyInv()
@@ -839,15 +842,25 @@ function ClearChunk()
         end
         CheckFuel()
         SmartNavigate(Pos.x, Pos.y, Pos.z, sX, sY, k)
+
+        local nChunk, zChunk = ReadChunkFromFile("Chunk")
+        local file = fs.open("Chunk", "w")
+
+        if file then
+            file.writeLine(nChunk .. "," .. Pos.z)
+            file.close()
+        else
+            print("Error al crear el archivo")
+        end
     end
 end
 ----------------------
 
 function WorkRoutine()
-    local nChunk = ReadChunkFromFile("Chunk")
+    local nChunk, zChunk = ReadChunkFromFile("Chunk")
     EmptyInv()
     local x, y = ChunkCoords(nChunk, -607, 288) -- Poner la esquina del chunk-0 (chunk superior derecho)
-    SmartNavigate(Pos.x, Pos.y, Pos.z, x, y, 100) -- Definir segundo z
+    SmartNavigate(Pos.x, Pos.y, Pos.z, x, y, zChunk) -- Definir segundo z
     RotateTo("E")
     turtle.select(1)
     ClearChunk()
@@ -855,7 +868,7 @@ function WorkRoutine()
     local file = fs.open("Chunk", "w")
 
     if file then
-        file.writeLine(nChunk + 1)
+        file.writeLine(nChunk + 1, 110)
         file.close()
     else
         print("Error al crear el archivo")
