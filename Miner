@@ -821,6 +821,7 @@ function EmptyInv()
         turtle.select(i)
         turtle.drop()
     end
+    turtle.select(1)
 end
 
 ----------------------
