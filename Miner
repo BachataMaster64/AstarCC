@@ -130,6 +130,7 @@ end
 function CheckFuel()
     local points = ReadPointsFromFile("Instructions")
     local fill = false
+    local moved = false
 
     while true do
         local fuelLimit = turtle.getFuelLimit()
@@ -138,7 +139,7 @@ function CheckFuel()
 
         -- Si ya está al 100%, salir
         if fuelLevel == fuelLimit then
-            return
+            return moved
         end
 
         -- Si está al 50% o menos, recargar hasta llenar
@@ -147,7 +148,7 @@ function CheckFuel()
         end
 
         if fill == false then
-            return
+            return moved
         end
 
         turtle.select(1)
@@ -156,6 +157,7 @@ function CheckFuel()
         if not success then
             -- Ir a la estación de carga
             SmartNavigate(Pos.x, Pos.y, Pos.z, points[2].x, points[2].y, points[2].z)
+            moved = true
             RotateTo(points[2].C)
             turtle.select(1)
             turtle.drop(64)   -- Dejar balde vacío o carbón usado
@@ -831,7 +833,7 @@ function ClearChunk()
     local sY = Pos.y
     local sZ = Pos.z
     for k = Pos.z, zStop, -1 do
-        for j = sY, sY + 15 do
+        for j = sY, sY + 15, 2 do
             for i = sX, sX + 15 do
                 GoTo(i, j, k)
                 turtle.digDown()
@@ -840,9 +842,20 @@ function ClearChunk()
                     SmartNavigate(Pos.x, Pos.y, Pos.z, i, j, k)
                 end
             end
+
+            for i = sX + 15, sX, -1 do
+                GoTo(i, j + 1, k)
+                turtle.digDown()
+                if turtle.getItemCount(16) > 0 then
+                    EmptyInv()
+                    SmartNavigate(Pos.x, Pos.y, Pos.z, i, j + 1, k)
+                end
+            end
         end
-        CheckFuel()
-        SmartNavigate(Pos.x, Pos.y, Pos.z, sX, sY, k)
+        local moved = CheckFuel()
+        if moved == true then
+            SmartNavigate(Pos.x, Pos.y, Pos.z, sX, sY, k)
+        end
 
         local nChunk, zChunk = ReadChunkFromFile("Chunk")
         local file = fs.open("Chunk", "w")
