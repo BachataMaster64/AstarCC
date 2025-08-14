@@ -882,7 +882,7 @@ function WorkRoutine()
     local file = fs.open("Chunk", "w")
 
     if file then
-        file.writeLine(nChunk + 1, 110)
+        file.writeLine((nChunk + 1) .. ", 110")
         file.close()
     else
         print("Error al crear el archivo")
