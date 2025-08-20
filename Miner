@@ -897,7 +897,7 @@ if not fs.exists(BaseDir) then
     fs.makeDir(BaseDir)
 end
 
-os.sleep(10)
+os.sleep(120)
 turtle.select(2)
 
 item = turtle.getItemDetail()
